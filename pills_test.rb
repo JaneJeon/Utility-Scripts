@@ -1,5 +1,6 @@
 # keeps track of pills you need to take and the history
 # @author: Jane Jeon
+# TODO: add support for individual pills
 
 require 'sqlite3'
 
@@ -26,6 +27,7 @@ end
 def pill_names
   db = SQLite3::Database.open 'pills.db'
   current_pills_output = 'Current pills:'
+  
   current_pills = db.execute 'SELECT Name FROM Pills'
 
   # because the above query returns array of array, I need to unpack twice
@@ -63,6 +65,9 @@ def pills_to_take
   pills_list.each do |pill|
     result_set = db.execute "SELECT Date FROM Log WHERE Name = '#{pill.name}' 
                             ORDER BY Date DESC LIMIT 1"
+
+    result << pill if result_set.empty?
+    
     result_set.each do |strip|
       strip.each do |last_taken|
         result << pill if Date.parse(last_taken) + pill.freq <= Date.today
@@ -75,7 +80,7 @@ def pills_to_take
   result
 end
 
-# method to be used when I'm first adding to an empty database or during updates
+# method to be used when first adding to an empty database or during updates
 def add
   done = false
   pill = '', pill_num = pill_freq = 0
@@ -159,7 +164,6 @@ def update
     case to_update.downcase
       when *name
         new_name = ''
-        
         loop do
           puts 'What\'s the new name for the pill?'
           new_name = gets.chomp
@@ -169,7 +173,6 @@ def update
         db.execute "UPDATE Pills SET Name = '#{new_name}' WHERE Name = '#{pill}'"
       when *num
         new_num = 0
-        
         loop do
           puts 'How many do you need to take now?'
           new_num = gets.chomp.to_i
@@ -179,7 +182,6 @@ def update
         db.execute "UPDATE Pills SET Amount = #{new_num} WHERE Name = '#{pill}'"
       when *freq
         new_freq = 0
-        
         loop do
           puts 'How often do you need to take now?'
           new_freq = gets.chomp.to_i
@@ -248,16 +250,18 @@ pills = pills_to_take
 
 # display current pills info
 if pills.count == 1
-  puts 'Pill to take:'
+  puts 'Pill to take today:'
 elsif pills.count > 1
-  puts 'Pills to take:'
+  puts 'Pills to take today:'
 end
 
-pills.each do |pill|
-  if pill.freq == 1
-    puts "#{pill.num} #{pill.name} every day"
-  else
-    puts "#{pill.num} #{pill.name} every #{pill.freq} days"
+unless pills.empty?
+  pills.each do |pill|
+    if pill.freq == 1
+      puts "#{pill.num} #{pill.name} every day"
+    else
+      puts "#{pill.num} #{pill.name} every #{pill.freq} days"
+    end
   end
 end
 
