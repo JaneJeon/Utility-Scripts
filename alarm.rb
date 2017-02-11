@@ -45,6 +45,7 @@ def wake_timer(command)
   
   if index.nil?
     # only the hour is given
+    return 0 unless command[0].split(/(\D+)/)[1].nil?
     hour = command[0].to_i
     return 0 if hour > 12
     
