@@ -264,9 +264,9 @@ unless pills.empty?
       puts "#{pill.num} #{pill.name} every #{pill.freq} days"
     end
   end
-end
 
-puts ''
+  puts ''
+end
 
 # update dialog
 puts 'Any change in prescription?'
@@ -290,7 +290,7 @@ else
     # log that I have taken such and such pills today onto the database
     pills.each do |pill|
       db.execute "INSERT INTO Log
-                VALUES('#{pill.name}', #{pill.num}, '#{Date.today}')"
+                  VALUES('#{pill.name}', #{pill.num}, '#{Date.today}')"
     end
 
     puts 'Good job!'
