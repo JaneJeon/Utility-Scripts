@@ -236,6 +236,7 @@ end
 
 # ---------------------------- begin main program ----------------------------- #
 
+# if database doesn't exist, opening will simply create a new one
 db = SQLite3::Database.open 'pills.db'
 
 db.execute 'CREATE TABLE IF NOT EXISTS
