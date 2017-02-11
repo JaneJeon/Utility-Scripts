@@ -1,6 +1,5 @@
 # keeps track of pills you need to take and the history
 # @author: Jane Jeon
-# TODO: check previous records and date frequency
 
 require 'sqlite3'
 
@@ -57,6 +56,25 @@ def pills_list
   pills_list
 end
 
+def pills_to_take
+  db = SQLite3::Database.open 'pills.db'
+  result = []
+
+  pills_list.each do |pill|
+    result_set = db.execute "SELECT Date FROM Log WHERE Name = '#{pill.name}' 
+                            ORDER BY Date DESC LIMIT 1"
+    result_set.each do |strip|
+      strip.each do |last_taken|
+        result << pill if Date.parse(last_taken) + pill.freq <= Date.today
+      end
+    end
+  end
+  
+  db.close
+  
+  result
+end
+
 # method to be used when I'm first adding to an empty database or during updates
 def add
   done = false
@@ -88,7 +106,7 @@ def add
     done = true if input.empty? || !positive(input)
   end
 
-  #db.close
+  db.close
 end
 
 def delete
@@ -185,9 +203,9 @@ end
 def update_dialog
   done = false
 
-  update = %w(update u)
-  adding = %w(add a)
-  delete = %w(delete d del)
+  update_ = %w(update u)
+  add_ = %w(add a)
+  delete_ = %w(delete d del)
 
   until done
     puts 'Update/Add/Delete prescription: [u/a/d]'
@@ -196,12 +214,12 @@ def update_dialog
     input.downcase unless input.nil?
 
     case input
-      when *update
-        update()
-      when *adding
-        add()
-      when *delete
-        delete()
+      when *update_
+        update
+      when *add_
+        add
+      when *delete_
+        delete
       else
         break
     end
@@ -226,12 +244,12 @@ db.execute 'CREATE TABLE IF NOT EXISTS Log(Name TEXT, Amount INTEGER, Date TEXT)
 add if db.execute('SELECT count(*) FROM Pills').to_s.eql?'[[0]]'
 
 puts ''
-pills = pills_list
+pills = pills_to_take
 
 # display current pills info
 if pills.count == 1
   puts 'Pill to take:'
-else
+elsif pills.count > 1
   puts 'Pills to take:'
 end
 
@@ -253,23 +271,27 @@ if positive response
   update_dialog
 
   # update pills list
-  pills = pills_list
+  pills = pills_to_take
 end
 
 # menu dialog
-puts 'Did you take your pill today?'
-response = gets.chomp
-
-if response.empty? || positive(response)
-  # log that I have taken such and such pills today onto the database
-  pills.each do |pill|
-    db.execute "INSERT INTO Log
-                VALUES('#{pill.name}', #{pill.num}, '#{Date.today}')"
-  end
-
-  puts 'Good job!'
+if pills.empty?
+  puts 'You have no pills to take today.'
 else
-  puts 'Go take your pills for today.'
+  puts 'Did you take your pill today?'
+  response = gets.chomp
+
+  if response.empty? || positive(response)
+    # log that I have taken such and such pills today onto the database
+    pills.each do |pill|
+      db.execute "INSERT INTO Log
+                VALUES('#{pill.name}', #{pill.num}, '#{Date.today}')"
+    end
+
+    puts 'Good job!'
+  else
+    puts 'Go take your pills for today.'
+  end
 end
 
 db.close
