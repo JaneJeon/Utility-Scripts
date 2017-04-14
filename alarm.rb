@@ -2,8 +2,11 @@
 # Supposed to be reliable, unlike the f***ing MATLAB version
 # Instead of alarm sound, play the latest episode of BBC world podcast at max 
 # volume when it's time to wake up so I can get the news
+# edit: I added the option for The Intercept, which I never knew was a podcast.
 # @author: Jane Jeon
 # TODO: support multiple alarms
+# TODO: write unit tests for the time-checking options to make sure that 
+# they're working properly
 
 require 'open-uri'
 
@@ -96,13 +99,17 @@ end
 # ---------------------------- begin main program ---------------------------- #
 
 # regularly paste on chrome to see if the format of RSS has changed or not
-FEED_LINK = 'http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads.rss'
+FEED_LINK = %w(http://www.bbc.co.uk/programmes/p02nq0gn/episodes/downloads
+.rss https://feeds.feedburner.com/InterceptedWithJeremyScahill)
 set_time = '', duration = 0
 done = false
+station = ['BBC', 'The Intercept']
+station_id = 0
 
 puts "Supported time formats:
 sleep X hour X min | sleep X hour | sleep X min | sleep XhYY
-wake X:XX | wake XX:XX | wake X (o'clock) | wake X AM/PM | wake X:XX AM/PM\n\n"
+wake X:XX | wake XX:XX | wake X (o'clock) | wake X AM/PM | wake X:XX AM/PM
+[change] station: [BBC]/The Intercept\n\n"
 
 until done
   loop do
@@ -121,6 +128,9 @@ until done
     when 'wake'
       duration = wake_timer time_command.drop(1)
       done = true unless duration == 0
+    when 'change'
+      station_id = (station_id + 1) % 2
+      puts "Station: #{station[station_id]}"
     else
       puts "Supported commands: sleep, wake\n"
   end
@@ -130,7 +140,7 @@ end
 sleep duration
 
 # load in XML from RSS feed
-page_string = open(FEED_LINK) { |f| f.read }
+page_string = open(FEED_LINK[station_id]) { |f| f.read }
 
 # indexing XML for date
 start_idx = page_string.index('<pubDate>')
@@ -149,3 +159,5 @@ open('audio.mp3', 'wb') { |file| file << open(media_url).read }
 
 # afplay is a mac-specific program. use system() or pid for windows.
 `afplay audio.mp3`
+
+# TODO: fix alarm

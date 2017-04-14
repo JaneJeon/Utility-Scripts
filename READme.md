@@ -17,3 +17,7 @@ Now, the way I'm parsing the XML is *specific* to the one used by the BBC podcas
 Currently, I'm thinking of making some kind of journal, and dabbling on natural language processing and sentiment analysis with Ruby.
 
 Right after I fix the flaming trash that is my main project on my main account...
+
+Btw, todo is not done -- I only had so much time xP
+
+I also have some scripts for math HW included in here, because why not.

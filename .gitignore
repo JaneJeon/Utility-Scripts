@@ -5,3 +5,6 @@
 .idea
 /.idea/
 .idea/
+test.rb
+.sqlite
+/todo.sqlite

@@ -1,6 +1,5 @@
 # keeps track of pills you need to take and the history
 # @author: Jane Jeon
-# TODO: add support for individual pills
 
 require 'sqlite3'
 
@@ -24,8 +23,18 @@ def positive(input)
   %w(yes y yep yeah).include? input.downcase
 end
 
+# the accurate way to get the date, accounting for dst
+def now
+  time_segs = Time.now.getlocal('-05:00').to_s.split.first.split('-')
+  if Time.local(time_segs[0], time_segs[1], time_segs[2]).dst?
+    (Time.now.getlocal('-05:00') + 60 * 60).to_s.split.first
+  else
+    Time.now.getlocal('-05:00').to_s.split.first
+  end
+end
+
 def pill_names
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
   current_pills_output = 'Current pills:'
   
   current_pills = db.execute 'SELECT Name FROM Pills'
@@ -43,7 +52,7 @@ def pill_names
 end
 
 def pills_list
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
   pills_list = []
 
   # read through the database and collect pills info
@@ -59,7 +68,7 @@ def pills_list
 end
 
 def pills_to_take
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
   result = []
 
   pills_list.each do |pill|
@@ -70,7 +79,8 @@ def pills_to_take
     
     result_set.each do |strip|
       strip.each do |last_taken|
-        result << pill if Date.parse(last_taken) + pill.freq <= Date.today
+        result << pill if Date.parse(last_taken) + pill.freq <= 
+            Date.parse(now)
       end
     end
   end
@@ -84,7 +94,7 @@ end
 def add
   done = false
   pill = '', pill_num = pill_freq = 0
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
 
   until done
     # loops to ensure that user is inputting something
@@ -116,7 +126,7 @@ end
 
 def delete
   done = false
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
 
   until done
     puts pill_names
@@ -141,7 +151,7 @@ end
 def update
   done = false
   pill = '', to_update = ''
-  db = SQLite3::Database.open 'pills.db'
+  db = SQLite3::Database.open 'pills.sqlite'
 
   name = %w(pill, name, pillname, pill name)
   num = %w(quantity, num, number, how many, amount)
@@ -237,7 +247,7 @@ end
 # ---------------------------- begin main program ----------------------------- #
 
 # if database doesn't exist, opening will simply create a new one
-db = SQLite3::Database.open 'pills.db'
+db = SQLite3::Database.open 'pills.sqlite'
 
 db.execute 'CREATE TABLE IF NOT EXISTS
             Pills(Name TEXT, Amount INTEGER, Frequency INTEGER)'
@@ -248,6 +258,10 @@ add if db.execute('SELECT count(*) FROM Pills').to_s.eql?'[[0]]'
 
 puts ''
 pills = pills_to_take
+
+# display the last day of pills taken
+last_day = db.execute 'SELECT date FROM log ORDER BY date DESC LIMIT 1'
+puts "Pill last taken on #{last_day[0][0].tr('"', '')}\n\n"
 
 # display current pills info
 if pills.count == 1
@@ -281,7 +295,7 @@ end
 
 # menu dialog
 if pills.empty?
-  puts 'You have no pills to take today.'
+  puts "You have no pills to take today.\n\n"
 else
   puts 'Did you take your pill today?'
   response = gets.chomp
@@ -289,13 +303,13 @@ else
   if response.empty? || positive(response)
     # log that I have taken such and such pills today onto the database
     pills.each do |pill|
-      db.execute "INSERT INTO Log
-                  VALUES('#{pill.name}', #{pill.num}, '#{Date.today}')"
+      db.execute "INSERT INTO Log VALUES('#{pill.name}', #{pill.num}, 
+                  '#{now}')"
     end
 
-    puts 'Good job!'
+    puts "Good job!\n\n"
   else
-    puts 'Go take your pills for today.'
+    puts "Go take your pills for today.\n\n"
   end
 end
 
