@@ -1,23 +1,7 @@
-# LittlePrograms
-Just some bunch of scripts and little programs.
+Only look at pills.rb, since the rest are just scratch files.
 
-So far, I have two actual programs/scripts:
+To run, you should have ruby installed, along with sqlite3 driver.
 
-In chronological order, the first I've written is `pills.rb`.
-I made it since I couldn't remember whether I already took a pill at any given day.
-It also turned out to be a good way to keep track of which ones I need to take for any given day, look up the history, and learn how to use SQLite3 in Ruby.
+You have options to add, update, and delete any number of pills, and for each pill you can track the name, amount to take, and how often you have to take it -- most of the time, it will be once a day.
 
-And then there is the `alarm.rb`.
-Literally made it in an hour or two - simple, but works great!
-I was having trouble with some of the alarm scripts being unreliable, so I made one myself.
-The twist here is that it uses RSS to pull in the latest episode from BBC World podcast (it's awesome - if you haven't, check it out!) and play it at max volume so that I can wake up ~~depressed~~ informed.
-
-Now, the way I'm parsing the XML is *specific* to the one used by the BBC podcast service, and even then, there's no guarantee that they won't change the format (and thus render this program useless)!
-
-Currently, I'm thinking of making some kind of journal, and dabbling on natural language processing and sentiment analysis with Ruby.
-
-Right after I fix the flaming trash that is my main project on my main account...
-
-Btw, todo is not done -- I only had so much time xP
-
-I also have some scripts for math HW included in here, because why not.
+Then, you can easily check whether you've taken your pills for the day or not, and update the pills log automagically.
