@@ -67,7 +67,7 @@ def pills_list
   pills_list
 end
 
-def pills_to_take
+def pills_to_take(rollback)
   db = SQLite3::Database.open 'pills.sqlite'
   result = []
 
@@ -80,7 +80,7 @@ def pills_to_take
     result_set.each do |strip|
       strip.each do |last_taken|
         result << pill if Date.parse(last_taken) + pill.freq <= 
-            Date.parse(now)
+            Date.parse(now) - rollback
       end
     end
   end
@@ -261,7 +261,7 @@ db.execute 'CREATE TABLE IF NOT EXISTS Log(Name TEXT, Amount INTEGER, Date TEXT)
 add if db.execute('SELECT count(*) FROM Pills').to_s.eql?'[[0]]'
 
 puts ''
-pills = pills_to_take
+pills = pills_to_take(rollback)
 
 # display the last day of pills taken
 last_day = db.execute 'SELECT date FROM log ORDER BY date DESC LIMIT 1'
@@ -294,7 +294,7 @@ if positive response
   update_dialog
 
   # update pills list
-  pills = pills_to_take
+  pills = pills_to_take(rollback)
 end
 
 # menu dialog
