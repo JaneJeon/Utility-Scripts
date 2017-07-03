@@ -249,6 +249,10 @@ end
 # if database doesn't exist, opening will simply create a new one
 db = SQLite3::Database.open 'pills.sqlite'
 
+rollback = 0
+rollback = 1 if ARGV[0].downcase.eql?('rollback')
+ARGV.clear
+
 db.execute 'CREATE TABLE IF NOT EXISTS
             Pills(Name TEXT, Amount INTEGER, Frequency INTEGER)'
 db.execute 'CREATE TABLE IF NOT EXISTS Log(Name TEXT, Amount INTEGER, Date TEXT)'
@@ -304,7 +308,7 @@ else
     # log that I have taken such and such pills today onto the database
     pills.each do |pill|
       db.execute "INSERT INTO Log VALUES('#{pill.name}', #{pill.num}, 
-                  '#{now}')"
+                  '#{Date.parse(now) - rollback}')"
     end
 
     puts "Good job!\n\n"
