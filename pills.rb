@@ -250,7 +250,7 @@ end
 db = SQLite3::Database.open 'pills.sqlite'
 
 rollback = 0
-rollback = 1 if ARGV[0].downcase.eql?('rollback')
+rollback = 1 if !ARGV[0].nil? && ARGV[0].downcase.eql?('rollback')
 ARGV.clear
 
 db.execute 'CREATE TABLE IF NOT EXISTS
